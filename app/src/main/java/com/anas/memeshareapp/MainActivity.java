@@ -11,8 +11,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -30,8 +33,10 @@ import org.json.JSONObject;
 public class MainActivity extends AppCompatActivity {
 
     ImageView imgMeme;
-    Button btnNext;
-    Button btnShare;
+    ImageView btnNext;
+    ImageView btnShare;
+    ProgressBar progressBar;
+
 
     String url ;
 
@@ -40,9 +45,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         imgMeme = findViewById(R.id.imgMeme);
         btnNext = findViewById(R.id.btnNext);
         btnShare = findViewById(R.id.btnShare);
+        progressBar = findViewById(R.id.progressBar);
+
 
 
         apiCall();
@@ -63,6 +73,11 @@ public class MainActivity extends AppCompatActivity {
 
                 String bitmapPath = MediaStore.Images.Media.insertImage(getContentResolver(),bitmap,"Title",null);
                 Uri uri = Uri.parse(bitmapPath);
+
+//                Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + imgMeme.getId());
+                System.out.println(uri.toString());
+//                Toast.makeText(MainActivity.this, uri.toString(), Toast.LENGTH_SHORT).show();
+
                 Intent intent = new Intent(Intent.ACTION_SEND);
                 intent.setType("image/*");
                 intent.putExtra(Intent.EXTRA_STREAM,uri);
@@ -72,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void apiCall(){
+        progressBar.setVisibility(View.VISIBLE);
         url = "https://meme-api.com/gimme";
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
@@ -83,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
                             url = response.getString("url");
                             Glide.with(MainActivity.this).load(url).into(imgMeme);
-
+                            progressBar.setVisibility(View.GONE);
                         }
                         catch (JSONException e){
                             e.printStackTrace();
@@ -100,5 +116,6 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+
     }
 }
